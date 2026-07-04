@@ -2,21 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Borrowing extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'borrower_name', 
-        'borrow_date', 
-        'return_date', 
-        'status'
+        'user_id',
+        'borrow_date',
+        'return_date',
+        'status',
     ];
 
-    public function borrowingDetails()
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function borrowingDetails(): HasMany
     {
         return $this->hasMany(BorrowingDetail::class);
     }

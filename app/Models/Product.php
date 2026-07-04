@@ -2,28 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'product_code', 
-        'name', 
-        'category_id', 
-        'stock', 
-        'storage_location', 
-        'condition'
+        'category_id',
+        'product_code',
+        'name',
+        'stock',
+        'location',
+        'condition',
     ];
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function borrowingDetails()
+    public function borrowingDetails(): HasMany
     {
         return $this->hasMany(BorrowingDetail::class);
     }
