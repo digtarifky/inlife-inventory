@@ -19,24 +19,24 @@ class UserSeeder extends Seeder
         $managerRole = Role::where('name', 'Manager')->first();
 
         User::create([
-            'name' => 'Admin Utama',
-            'email' => 'admin@telkomsel.com',
+            'name' => 'Super Admin',
+            'email' => 'admin@inlife.com',
             'password' => Hash::make('password123'),
-            'role_id' => $adminRole->id,
+            'role_id' => 1,
         ]);
 
         User::create([
             'name' => 'Staff Inventaris',
-            'email' => 'staff@telkomsel.com',
+            'email' => 'staff@inlife.com',
             'password' => Hash::make('password123'),
-            'role_id' => $staffRole->id,
+            'role_id' => 2,
         ]);
 
         User::create([
             'name' => 'Manager Laporan',
-            'email' => 'manager@telkomsel.com',
+            'email' => 'manager@inlife.com',
             'password' => Hash::make('password123'),
-            'role_id' => $managerRole->id,
+            'role_id' => 3,
         ]);
     }
 }
