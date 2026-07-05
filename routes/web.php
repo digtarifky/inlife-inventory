@@ -11,15 +11,21 @@ Route::get('/', function () {
     return view('login');
 });
 
-// Grup Route yang membutuhkan Login
+// --------------------------------------------------------
+// GRUP ROUTE YANG MEMBUTUHKAN LOGIN (Semua Role)
+// --------------------------------------------------------
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Semua role bisa melihat Dashboard
+    // Dashboard & Fitur AJAX (Bisa dilihat semua role)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/products/get-next-code', [ProductController::class, 'getNextCode'])->name('products.get_next_code');
-    Route::resource('products', ProductController::class);
     
-    // Profile Routes bawaan Breeze (Semua role)
+    // Halaman List Utama & Detail (Bisa dilihat semua role)
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/borrowings', [BorrowingController::class, 'index'])->name('borrowings.index');
+    
+    // Profile Routes bawaan Breeze
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -28,25 +34,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // HAK AKSES ADMIN & STAFF (Kelola Inventaris & Peminjaman)
     // --------------------------------------------------------
     Route::middleware(['role:Admin,Staff'])->group(function () {
+        // Kelola Kategori Master
         Route::resource('categories', CategoryController::class);
-        Route::resource('products', ProductController::class);
-        Route::resource('borrowings', BorrowingController::class);
+        
+        // Kelola CRUD Barang (Hanya menyisakan aksi Tambah, Edit, Hapus)
+        Route::resource('products', ProductController::class)->except(['index', 'show']);
+        
+        // Kelola Aksi Transaksi Peminjaman & Pengembalian
+        Route::get('/borrowings/create', [BorrowingController::class, 'create'])->name('borrowings.create');
+        Route::post('/borrowings', [BorrowingController::class, 'store'])->name('borrowings.store');
+        Route::put('/borrowings/{borrowing}/return', [BorrowingController::class, 'returnProduct'])->name('borrowings.return');
     });
 
     // --------------------------------------------------------
-    // HAK AKSES KHUSUS ADMIN (Full Access - Fitur Ekstra Nanti)
+    // HAK AKSES KHUSUS ADMIN (Full Access - Pengaturan Sistem)
     // --------------------------------------------------------
     Route::middleware(['role:Admin'])->group(function () {
-        // Route khusus pengaturan sistem/user manajemen bisa diletakkan di sini nantinya
+        // Tempat manajemen user/role jika diperlukan nanti
     });
 
     // --------------------------------------------------------
     // HAK AKSES MANAGER & ADMIN (Melihat Laporan)
     // --------------------------------------------------------
     Route::middleware(['role:Admin,Manager'])->group(function () {
-        // Route khusus untuk mengunduh laporan PDF/Excel
         // Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
 });
+
 require __DIR__.'/auth.php';
