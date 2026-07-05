@@ -1,19 +1,26 @@
 <x-guest-layout>
-    <div class="w-full sm:max-w-md mx-auto p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] mt-10">
+    <div class="max-w-md w-full mx-auto bg-white p-8 rounded-[28px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] border border-slate-100/50 relative">
         
-        <h2 class="text-3xl font-bold mb-6 text-white tracking-wide text-center">Pemulihan Sandi</h2>
+        <div class="flex justify-center mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl flex items-center justify-center shadow-inner">
+                <div class="grid grid-cols-2 gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                    <div class="w-2 h-2 rounded-full bg-white"></div>
+                    <div class="w-2 h-2 rounded-full bg-white"></div>
+                    <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                </div>
+            </div>
+        </div>
 
-        <div class="text-sm text-gray-200 mb-8 bg-black/30 p-4 rounded-xl border border-white/10">
-            <p class="font-semibold mb-2 text-white">Instruksi Pemulihan:</p>
-            <ol class="list-decimal list-inside space-y-1">
-                <li>Masukkan alamat email yang terdaftar pada sistem.</li>
-                <li>Klik tombol "Kirim Tautan".</li>
-                <li>Periksa kotak masuk email Anda untuk instruksi lanjutan.</li>
-            </ol>
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Reset Password</h2>
+            <p class="text-xs text-slate-400 mt-2 px-4 leading-relaxed">
+                Forgot your password? No problem. Just let us know your email address and we will email you a password reset link.
+            </p>
         </div>
 
         @if (session('status'))
-            <div class="mb-4 text-sm font-medium text-green-400 bg-green-900/30 p-3 rounded-lg border border-green-500/30">
+            <div class="mb-5 font-medium text-xs text-green-600 bg-green-50 p-3.5 rounded-xl border border-green-100 text-center animate-fade-in">
                 {{ session('status') }}
             </div>
         @endif
@@ -21,26 +28,88 @@
         <form method="POST" action="{{ route('password.email') }}">
             @csrf
 
-            <div class="mb-8">
-                <label class="block text-sm font-medium text-gray-300 mb-2" for="email">
-                    Email
-                </label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" 
-                    class="w-full bg-black/20 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all backdrop-blur-sm" 
-                    required autofocus />
+            <div class="mb-5">
+                <div class="relative flex items-center">
+                    <span class="absolute left-4 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0l-7.5-4.615m19.5 0A2.25 2.25 0 0 0 19.5 6.75" />
+                        </svg>
+                    </span>
+                    <input id="email" class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-transparent focus:border-slate-200 focus:bg-white focus:ring-0 rounded-2xl text-sm text-slate-700 placeholder-slate-400 transition-all duration-200" 
+                           type="email" 
+                           name="email" 
+                           placeholder="Email Address"
+                           :value="old('email')" 
+                           required 
+                           autofocus />
+                </div>
                 @error('email')
-                    <div class="mt-2 text-red-400 text-xs">{{ $message }}</div>
+                    <span class="text-xs text-red-500 mt-1 block pl-2 font-medium">{{ $message }}</span>
                 @enderror
             </div>
 
-            <div class="flex flex-row justify-between items-center mt-4">
-                <a href="{{ route('login') }}" class="text-sm text-gray-400 hover:text-white transition-colors px-4 py-2">
-                    Batal
-                </a>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all duration-300">
-                    Kirim Tautan
-                </button>
-            </div>
+            <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-2xl transition-all duration-200 shadow-sm">
+                Reset Password
+            </button>
         </form>
+
+        <div class="mt-8 text-center text-sm text-slate-400">
+            Remembered your password? 
+            <a href="{{ route('login') }}" class="font-semibold text-slate-700 hover:underline ml-1">Sign In</a>
+        </div>
     </div>
+
+    @if (session('demo_url'))
+        <div id="demoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 invisible opacity-0 transition-all duration-300 ease-out">
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"></div>
+            
+            <div class="bg-white rounded-[28px] max-w-sm w-full p-6 shadow-2xl border border-slate-100 relative z-10 transform scale-95 translate-y-4 transition-all duration-300 ease-out">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 11.056 1.287l-.056.02-.041.02a.75.75 0 11-.056-1.287l.056-.02zM12 20.25a8.25 8.25 0 100-16.5 8.25 8.25 0 000 16.5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">Reset Password</h4>
+                        <p class="text-[11px] text-slate-400">Change your password</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-500 leading-relaxed mb-6">
+                    Click the reset button now to update your password.
+                </p>
+
+                <div class="space-y-2">
+                    <a href="{{ session('demo_url') }}" class="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-800 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-sm shadow-green-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                        Reset Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('demoModal');
+                const modalBox = modal.querySelector('.transform');
+                const closeBtn = document.getElementById('closeModalBtn');
+
+                setTimeout(() => {
+                    modal.classList.remove('invisible', 'opacity-0');
+                    modalBox.classList.remove('scale-95', 'translate-y-4');
+                    modalBox.classList.add('scale-100', 'translate-y-0');
+                }, 150);
+
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.add('opacity-0');
+                    modalBox.classList.remove('scale-100', 'translate-y-0');
+                    modalBox.classList.add('scale-95', 'translate-y-4');
+                    setTimeout(() => modal.classList.add('invisible'), 300);
+                });
+            });
+        </script>
+    @endif
 </x-guest-layout>

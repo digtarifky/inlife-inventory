@@ -8,7 +8,7 @@ use App\Http\Controllers\BorrowingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('login');
 });
 
 // Grup Route yang membutuhkan Login
@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Semua role bisa melihat Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('products', ProductController::class);
     
     // Profile Routes bawaan Breeze (Semua role)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
