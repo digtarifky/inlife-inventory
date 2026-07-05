@@ -7,17 +7,27 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
     /**
      * Menampilkan daftar semua barang inventaris.
      */
-    public function index(): View
+   public function index(Request $request): View
     {
-        // Mengambil produk beserta data kategori terkaitnya (Eager Loading untuk performa)
-        $products = Product::with('category')->latest()->get();
-        return view('products.index', compact('products'));
+        $search = $request->input('search');
+
+        $products = Product::with('category')
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                             ->orWhere('code', 'like', "%{$search}%");
+            })
+            ->oldest()
+            ->paginate(10)
+            ->withQueryString();
+        
+        return view('products.index', compact('products', 'search'));
     }
 
     /**
@@ -52,6 +62,14 @@ class ProductController extends Controller
     }
 
     /**
+     * Menampilkan detail spesifik satu barang.
+     */
+    public function show(Product $product): View
+    {
+        return view('products.show', compact('product'));
+    }
+
+    /**
      * Menampilkan formulir edit data barang.
      */
     public function edit(Product $product): View
@@ -61,22 +79,66 @@ class ProductController extends Controller
     }
 
     /**
+     * Membuat kode inventaris otomatis berdasarkan kategori yang dipilih (AJAX).
+     */
+    public function getNextCode(Request $request): JsonResponse
+    {
+        $category = Category::find($request->category_id);
+        
+        if (!$category) {
+            return response()->json(['code' => '']);
+        }
+
+        // Tentukan Prefix (Awalan) berdasarkan nama kategori
+        $name = strtoupper($category->name);
+        if (str_contains($name, 'ELEKTRONIK')) $prefix = 'ELK';
+        elseif (str_contains($name, 'FURNITUR')) $prefix = 'FTR';
+        elseif (str_contains($name, 'KENDARAAN')) $prefix = 'KNO';
+        elseif (str_contains($name, 'KEBERSIHAN')) $prefix = 'AKB';
+        elseif (str_contains($name, 'KANTOR')) $prefix = 'AKT';
+        else {
+            // Fallback: Ambil 3 huruf pertama konsonan
+            $prefix = substr(preg_replace('/[^A-Z]/', '', $name), 0, 3);
+        }
+
+        // Cari nomor urut terakhir untuk prefix ini
+        $latestProduct = Product::where('code', 'like', "INV-{$prefix}-%")->orderBy('code', 'desc')->first();
+        
+        $nextNumber = 1;
+        if ($latestProduct) {
+            // Ambil 3 angka terakhir dan tambahkan 1
+            $lastNumber = intval(substr($latestProduct->code, -3));
+            $nextNumber = $lastNumber + 1;
+        }
+
+        // Format hasil akhir (Contoh: INV-ELK-006)
+        $nextCode = "INV-{$prefix}-" . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return response()->json(['code' => $nextCode]);
+    }
+
+    /**
      * Memperbarui data barang yang sudah ada di database.
      */
     public function update(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:50', 'unique:products,code,' . $product->id],
+            // Validasi 'code' dihapus karena sudah dikunci dan tidak boleh diubah
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'stock' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
         ], [
-            'code.unique' => 'Kode barang sudah digunakan oleh aset lain.',
             'stock.min' => 'Stok tidak boleh bernilai negatif.'
         ]);
 
-        $product->update($validated);
+        // Update data, tanpa menyertakan 'code'
+        $product->update([
+            'category_id' => $validated['category_id'],
+            'name' => $validated['name'],
+            'stock' => $validated['stock'],
+            'description' => $validated['description'] ?? '',
+        ]);
 
         return redirect()->route('products.index')
             ->with('success', 'Data barang inventaris berhasil diperbarui.');
@@ -92,4 +154,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')
             ->with('success', 'Barang inventaris berhasil dihapus dari sistem.');
     }
+
+
 }

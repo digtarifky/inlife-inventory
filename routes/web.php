@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Semua role bisa melihat Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/products/get-next-code', [ProductController::class, 'getNextCode'])->name('products.get_next_code');
     Route::resource('products', ProductController::class);
     
     // Profile Routes bawaan Breeze (Semua role)

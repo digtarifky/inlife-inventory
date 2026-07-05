@@ -17,6 +17,8 @@ return new class extends Migration
         $table->string('code')->unique();
         $table->string('name');
         $table->integer('stock')->default(0);
+        $table->string('storage_location')->nullable();
+        $table->enum('condition', ['Bagus', 'Rusak Ringan', 'Rusak Berat'])->default('Bagus');
         $table->text('description')->nullable();
         $table->timestamps();
     });
