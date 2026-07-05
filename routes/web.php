@@ -37,15 +37,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Kelola Kategori Master
         Route::resource('categories', CategoryController::class);
         
-        // Kelola CRUD Barang (Hanya menyisakan aksi Tambah, Edit, Hapus)
         Route::resource('products', ProductController::class)->except(['index', 'show']);
         
-        // Kelola Aksi Transaksi Peminjaman & Pengembalian
         Route::get('/borrowings/create', [BorrowingController::class, 'create'])->name('borrowings.create');
         Route::post('/borrowings', [BorrowingController::class, 'store'])->name('borrowings.store');
-        Route::put('/borrowings/{borrowing}/return', [BorrowingController::class, 'returnProduct'])->name('borrowings.return');
+        Route::put('/borrowings/return/{detailId}', [BorrowingController::class, 'returnItem'])->name('borrowings.return_item');
     });
-
     // --------------------------------------------------------
     // HAK AKSES KHUSUS ADMIN (Full Access - Pengaturan Sistem)
     // --------------------------------------------------------

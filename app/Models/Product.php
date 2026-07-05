@@ -28,4 +28,9 @@ class Product extends Model
     {
         return $this->hasMany(Borrowing::class);
     }
+
+    public function borrowingDetails()
+    {
+        return $this->hasMany(BorrowingDetail::class);
+    }
 }

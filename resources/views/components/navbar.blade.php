@@ -25,7 +25,11 @@
             <div class="flex items-center gap-4">
                 <div class="hidden sm:flex flex-col text-right">
                     <span class="text-sm font-bold text-slate-800 tracking-tight">{{ Auth::user()->name }}</span>
-                    <span class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">{{ Auth::user()->role->name }}</span>
+                    
+                    <span class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">
+                        {{ Auth::user()->role?->name ?? 'STAFF' }}
+                    </span>
+                    
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">

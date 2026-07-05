@@ -14,11 +14,8 @@ return new class extends Migration
     Schema::create('borrowings', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-        $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
         $table->date('borrow_date');
-        $table->date('return_date')->nullable();
-        $table->enum('status', ['Dipinjam', 'Dikembalikan'])->default('Dipinjam');
-        
+        $table->enum('status', ['Berjalan', 'Selesai'])->default('Berjalan');
         $table->timestamps();
     });
 }

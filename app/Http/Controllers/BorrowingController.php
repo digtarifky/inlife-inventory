@@ -3,90 +3,103 @@
 namespace App\Http\Controllers;
 
 use App\Models\Borrowing;
+use App\Models\BorrowingDetail;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BorrowingController extends Controller
 {
-    /**
-     * Menampilkan daftar Riwayat Peminjaman.
-     */
     public function index(): View
     {
-        // Mengambil data peminjaman beserta relasi user dan product (Eager Loading)
-        $borrowings = Borrowing::with(['user', 'product'])
-            ->latest('borrow_date')
+        $activeItems = BorrowingDetail::with(['borrowing.user', 'product'])
+            ->where('item_status', 'Dipinjam')
+            ->orderByDesc('created_at')
+            ->get();
+
+
+        $completedItems = BorrowingDetail::with(['borrowing.user', 'product'])
+            ->where('item_status', 'Dikembalikan')
+            ->orderByDesc('return_date')
             ->paginate(10);
 
-        return view('borrowings.index', compact('borrowings'));
+        return view('borrowings.index', compact('activeItems', 'completedItems'));
     }
 
-    /**
-     * Menampilkan formulir Tambah Peminjaman.
-     */
-    public function create(): View
-    {
-        // Hanya menampilkan barang yang memiliki stok di atas 0
-        $products = Product::where('stock', '>', 0)->get();
-        
-        return view('borrowings.create', compact('products'));
-    }
-
-    /**
-     * Menyimpan data peminjaman baru & Mengurangi stok secara otomatis.
-     */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
+        // Validasi: product_ids sekarang adalah array (bisa pilih banyak barang)
+        $request->validate([
             'borrow_date' => ['required', 'date'],
+            'product_ids' => ['required', 'array'],
+            'product_ids.*' => ['exists:products,id']
         ]);
 
-        $product = Product::findOrFail($validated['product_id']);
+        try {
+            // Gunakan Transaction agar aman dari gagal simpan di tengah jalan
+            DB::transaction(function () use ($request) {
+                
+                // 1. Buat Nota Payung (Master)
+                $borrowing = Borrowing::create([
+                    'user_id' => Auth::id(),
+                    'borrow_date' => $request->borrow_date,
+                    'status' => 'Berjalan'
+                ]);
 
-        // Proteksi Tambahan: Pastikan stok benar-benar tersedia sebelum diproses
-        if ($product->stock < 1) {
-            return back()->withErrors(['product_id' => 'Stok barang ini sedang kosong dan tidak dapat dipinjam.']);
+                // 2. Looping setiap barang yang dipilih ke dalam Detail (Keranjang)
+                foreach ($request->product_ids as $productId) {
+                    $product = Product::lockForUpdate()->findOrFail($productId);
+                    
+                    if ($product->stock > 0) {
+                        BorrowingDetail::create([
+                            'borrowing_id' => $borrowing->id,
+                            'product_id' => $productId,
+                            'item_status' => 'Dipinjam'
+                        ]);
+                        
+                        // Potong stok
+                        $product->decrement('stock', 1);
+                    }
+                }
+            });
+
+            return redirect()->route('borrowings.index')->with('success', 'Transaksi peminjaman berhasil dicatat dan stok telah dipotong.');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat memproses peminjaman: ' . $e->getMessage());
         }
-
-        // 1. Simpan Transaksi Peminjaman (user_id otomatis dari admin/staff yang login)
-        Borrowing::create([
-            'user_id' => Auth::id(),
-            'product_id' => $validated['product_id'],
-            'borrow_date' => $validated['borrow_date'],
-            'status' => 'Dipinjam'
-        ]);
-
-        // 2. Potong Stok Barang secara Otomatis
-        $product->decrement('stock', 1);
-
-        return redirect()->route('borrowings.index')
-            ->with('success', "Peminjaman barang {$product->name} berhasil dicatat. Stok berkurang 1.");
     }
 
     /**
-     * Memproses Pengembalian Barang & Mengembalikan stok secara otomatis.
+     * Memproses Pengembalian per Barang (Bukan per Transaksi)
      */
-    public function returnProduct(Borrowing $borrowing): RedirectResponse
+    public function returnItem($detailId): RedirectResponse
     {
-        // Pastikan barang memang berstatus Dipinjam sebelum dikembalikan
-        if ($borrowing->status === 'Dikembalikan') {
-            return back()->with('error', 'Barang ini sudah dikembalikan sebelumnya.');
+        $detail = BorrowingDetail::findOrFail($detailId);
+
+        if ($detail->item_status === 'Dikembalikan') {
+            return back()->with('error', 'Barang ini sudah dikembalikan.');
         }
 
-        // 1. Perbarui status peminjaman dan catat tanggal hari ini
-        $borrowing->update([
-            'status' => 'Dikembalikan',
-            'return_date' => now()->format('Y-m-d')
-        ]);
+        DB::transaction(function () use ($detail) {
+            $detail->update([
+                'item_status' => 'Dikembalikan',
+                'return_date' => now()->format('Y-m-d')
+            ]);
 
-        // 2. Tambahkan kembali stok barang tersebut
-        $borrowing->product->increment('stock', 1);
+            $detail->product->increment('stock', 1);
 
-        return redirect()->route('borrowings.index')
-            ->with('success', "Barang {$borrowing->product->name} telah berhasil dikembalikan. Stok bertambah 1.");
+            $borrowing = $detail->borrowing;
+            $allReturned = $borrowing->details()->where('item_status', 'Dipinjam')->count() === 0;
+            
+            if ($allReturned) {
+                $borrowing->update(['status' => 'Selesai']);
+            }
+        });
+
+        return redirect()->route('borrowings.index')->with('success', 'Barang berhasil dikembalikan dan stok telah ditambahkan.');
     }
 }

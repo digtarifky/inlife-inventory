@@ -30,8 +30,22 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Relasi ke tabel Role (Karena pakai role_id, berarti pakai belongsTo)
+     */
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    /**
+     * Cek apakah User memiliki role tertentu
+     */
+    public function hasRole($roles): bool
+    {
+        if (is_string($roles)) {
+            $roles = [$roles];
+        }
+        return in_array($this->role?->name, $roles);
     }
 }
