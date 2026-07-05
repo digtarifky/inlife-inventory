@@ -20,8 +20,14 @@ class ProductController extends Controller
 
         $products = Product::with('category')
             ->when($search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                             ->orWhere('code', 'like', "%{$search}%");
+                // Mengelompokkan fitur search
+                return $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%") 
+                      ->orWhereHas('category', function ($catQuery) use ($search) {
+                          $catQuery->where('name', 'like', "%{$search}%");
+                      });
+                });
             })
             ->oldest()
             ->paginate(10)
@@ -49,6 +55,8 @@ class ProductController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'stock' => ['required', 'integer', 'min:0'],
+            'storage_location' => ['nullable', 'string', 'max:255'],
+            'condition' => ['required', 'in:Bagus,Rusak Ringan,Rusak Berat'],
             'description' => ['nullable', 'string'],
         ], [
             'code.unique' => 'Kode barang sudah terdaftar di sistem! Gunakan kode unik lain.',
@@ -66,7 +74,7 @@ class ProductController extends Controller
      */
     public function show(Product $product): View
     {
-        return view('products.show', compact('product'));
+        return view('products.detail', compact('product'));
     }
 
     /**
@@ -123,20 +131,21 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
-            // Validasi 'code' dihapus karena sudah dikunci dan tidak boleh diubah
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'stock' => ['required', 'integer', 'min:0'],
+            'storage_location' => ['nullable', 'string', 'max:255'], 
+            'condition' => ['required', 'in:Bagus,Rusak Ringan,Rusak Berat'],
             'description' => ['nullable', 'string'],
-        ], [
-            'stock.min' => 'Stok tidak boleh bernilai negatif.'
         ]);
 
-        // Update data, tanpa menyertakan 'code'
+        // Pastikan proses update memasukkan field tersebut
         $product->update([
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
             'stock' => $validated['stock'],
+            'storage_location' => $validated['storage_location'] ?? null,
+            'condition' => $validated['condition'],
             'description' => $validated['description'] ?? '',
         ]);
 
