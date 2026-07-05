@@ -20,4 +20,12 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    /**
+     * Relasi ke data peminjaman barang
+     */
+    public function borrowings()
+    {
+        return $this->hasMany(Borrowing::class);
+    }
 }

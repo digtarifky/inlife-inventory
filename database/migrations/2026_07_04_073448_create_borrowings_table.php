@@ -13,10 +13,12 @@ return new class extends Migration
 {
     Schema::create('borrowings', function (Blueprint $table) {
         $table->id();
-        $table->string('borrower_name'); 
+        $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+        $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
         $table->date('borrow_date');
         $table->date('return_date')->nullable();
-        $table->string('status'); // input example: 'Dipinjam', 'Dikembalikan'
+        $table->enum('status', ['Dipinjam', 'Dikembalikan'])->default('Dipinjam');
+        
         $table->timestamps();
     });
 }
