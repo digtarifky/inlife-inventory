@@ -16,13 +16,11 @@ Route::get('/', function () {
 // --------------------------------------------------------
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Dashboard & Fitur AJAX (Bisa dilihat semua role)
+    // Dashboard (Bisa dilihat semua role)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/products/get-next-code', [ProductController::class, 'getNextCode'])->name('products.get_next_code');
     
-    // Halaman List Utama & Detail (Bisa dilihat semua role)
+    // Halaman List Utama & Riwayat (Bisa dilihat semua role)
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/borrowings', [BorrowingController::class, 'index'])->name('borrowings.index');
     
     // Profile Routes bawaan Breeze
@@ -37,12 +35,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Kelola Kategori Master
         Route::resource('categories', CategoryController::class);
         
+        // Fitur AJAX Kode Otomatis (Ditaruh SEBELUM resource / rute {product} agar tidak bentrok)
+        Route::get('/products/get-next-code', [ProductController::class, 'getNextCode'])->name('products.get_next_code');
+        
+        // Kelola Produk (Kita kecualikan index dan show karena sudah dibuat manual)
         Route::resource('products', ProductController::class)->except(['index', 'show']);
         
+        // Peminjaman
         Route::get('/borrowings/create', [BorrowingController::class, 'create'])->name('borrowings.create');
         Route::post('/borrowings', [BorrowingController::class, 'store'])->name('borrowings.store');
         Route::put('/borrowings/return/{detailId}', [BorrowingController::class, 'returnItem'])->name('borrowings.return_item');
     });
+
+    // Rute Detail Produk ditaruh di PALING BAWAH setelah resource agar tidak mencegat URL /products/create
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+
     // --------------------------------------------------------
     // HAK AKSES KHUSUS ADMIN (Full Access - Pengaturan Sistem)
     // --------------------------------------------------------

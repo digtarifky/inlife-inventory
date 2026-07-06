@@ -73,6 +73,13 @@ class BorrowingController extends Controller
         }
     }
 
+    public function create(): View
+    {
+        $products = Product::where('stock', '>', 0)->get();
+        
+        return view('borrowings.create', compact('products'));
+    }
+
     /**
      * Memproses Pengembalian per Barang (Bukan per Transaksi)
      */
