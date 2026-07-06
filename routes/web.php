@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BorrowingController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('login');
@@ -64,6 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
+    Route::middleware('auth')->group(function () {
+    // Route Laporan
+    Route::get('/export/excel', [ReportController::class, 'exportExcel'])->name('export.excel');
+    Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
+
+    });
 });
 
 require __DIR__.'/auth.php';
