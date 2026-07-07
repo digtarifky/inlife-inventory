@@ -8,13 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     /**
      * Menampilkan daftar semua barang inventaris.
      */
-   public function index(Request $request): View
+    public function index(Request $request): View
     {
         $search = $request->input('search');
 
@@ -23,16 +24,16 @@ class ProductController extends Controller
                 // Mengelompokkan fitur search
                 return $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%") 
-                      ->orWhereHas('category', function ($catQuery) use ($search) {
-                          $catQuery->where('name', 'like', "%{$search}%");
-                      });
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhereHas('category', function ($catQuery) use ($search) {
+                            $catQuery->where('name', 'like', "%{$search}%");
+                        });
                 });
             })
             ->oldest()
             ->paginate(10)
             ->withQueryString();
-        
+
         return view('products.index', compact('products', 'search'));
     }
 
@@ -48,25 +49,23 @@ class ProductController extends Controller
     /**
      * Menyimpan data barang baru ke database dengan validasi ketat.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => ['required', 'string', 'unique:products,code', 'max:50'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'stock' => ['required', 'integer', 'min:0'],
-            'storage_location' => ['nullable', 'string', 'max:255'],
-            'condition' => ['required', 'in:Bagus,Rusak Ringan,Rusak Berat'],
-            'description' => ['nullable', 'string'],
-        ], [
-            'code.unique' => 'Kode barang sudah terdaftar di sistem! Gunakan kode unik lain.',
-            'stock.min' => 'Stok tidak boleh bernilai negatif.'
+            'category_id' => 'required|exists:categories,id',
+            'code'        => 'required|unique:products',
+            'name'        => 'required|string|max:255',
+            'stock'       => 'required|integer|min:0',
+            'condition'   => 'required|string',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Max 2MB
         ]);
 
-        Product::create($validated);
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
 
-        return redirect()->route('products.index')
-            ->with('success', 'Barang inventaris baru berhasil ditambahkan.');
+        Product::create($validated);
+        return redirect()->route('products.index')->with('success', 'Barang berhasil ditambahkan!');
     }
 
     /**
@@ -92,12 +91,11 @@ class ProductController extends Controller
     public function getNextCode(Request $request): JsonResponse
     {
         $category = Category::find($request->category_id);
-        
+
         if (!$category) {
             return response()->json(['code' => '']);
         }
 
-        // Tentukan Prefix (Awalan) berdasarkan nama kategori
         $name = strtoupper($category->name);
         if (str_contains($name, 'ELEKTRONIK')) $prefix = 'ELK';
         elseif (str_contains($name, 'FURNITUR')) $prefix = 'FTR';
@@ -105,21 +103,17 @@ class ProductController extends Controller
         elseif (str_contains($name, 'KEBERSIHAN')) $prefix = 'AKB';
         elseif (str_contains($name, 'KANTOR')) $prefix = 'AKT';
         else {
-            // Fallback: Ambil 3 huruf pertama konsonan
             $prefix = substr(preg_replace('/[^A-Z]/', '', $name), 0, 3);
         }
 
-        // Cari nomor urut terakhir untuk prefix ini
         $latestProduct = Product::where('code', 'like', "INV-{$prefix}-%")->orderBy('code', 'desc')->first();
-        
+
         $nextNumber = 1;
         if ($latestProduct) {
-            // Ambil 3 angka terakhir dan tambahkan 1
             $lastNumber = intval(substr($latestProduct->code, -3));
             $nextNumber = $lastNumber + 1;
         }
 
-        // Format hasil akhir (Contoh: INV-ELK-006)
         $nextCode = "INV-{$prefix}-" . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
         return response()->json(['code' => $nextCode]);
@@ -128,41 +122,38 @@ class ProductController extends Controller
     /**
      * Memperbarui data barang yang sudah ada di database.
      */
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'category_id' => ['required', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'stock' => ['required', 'integer', 'min:0'],
-            'storage_location' => ['nullable', 'string', 'max:255'], 
-            'condition' => ['required', 'in:Bagus,Rusak Ringan,Rusak Berat'],
-            'description' => ['nullable', 'string'],
+            'category_id' => 'required|exists:categories,id',
+            'code'        => 'required|unique:products,code,' . $product->id,
+            'name'        => 'required|string|max:255',
+            'stock'       => 'required|integer|min:0',
+            'condition'   => 'required|string',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Pastikan proses update memasukkan field tersebut
-        $product->update([
-            'category_id' => $validated['category_id'],
-            'name' => $validated['name'],
-            'stock' => $validated['stock'],
-            'storage_location' => $validated['storage_location'] ?? null,
-            'condition' => $validated['condition'],
-            'description' => $validated['description'] ?? '',
-        ]);
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
 
-        return redirect()->route('products.index')
-            ->with('success', 'Data barang inventaris berhasil diperbarui.');
+        $product->update($validated);
+        return redirect()->route('products.index')->with('success', 'Barang berhasil diperbarui!');
     }
 
     /**
      * Menghapus data barang dari sistem.
      */
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Product $product)
     {
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
-
-        return redirect()->route('products.index')
-            ->with('success', 'Barang inventaris berhasil dihapus dari sistem.');
+        return redirect()->route('products.index')->with('success', 'Barang berhasil dihapus!');
     }
-
-
 }

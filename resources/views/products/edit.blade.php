@@ -3,60 +3,73 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="mb-6">
-                <a href="{{ route('products.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 mb-4 transition-colors">
+                <a href="{{ route('products.index') }}" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
                     Kembali ke Daftar Barang
                 </a>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight transition-colors">Detail Inventaris</h1>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white mt-2">Edit Data Barang</h1>
             </div>
 
-            <div class="bg-white dark:bg-slate-800 rounded-[28px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-700 p-8 transition-colors duration-300">
-                <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-700 pb-6 mb-6 transition-colors">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800 dark:text-white transition-colors">{{ $product->name }}</h2>
-                        <p class="text-sm text-slate-400 dark:text-slate-400 mt-1 font-mono bg-slate-100 dark:bg-slate-700 inline-block px-2 py-0.5 rounded transition-colors">{{ $product->code }}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors">
-                            {{ $product->category->name }}
-                        </span>
-                    </div>
-                </div>
+            <div class="bg-white dark:bg-slate-800 rounded-[28px] shadow-sm border border-slate-100 dark:border-slate-700 p-8">
+                <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status Ketersediaan</p>
-                            <p class="text-lg font-bold {{ $product->stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }} transition-colors">{{ $product->stock }} Unit Tersedia</p>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nama Barang</label>
+                            <input type="text" name="name" value="{{ old('name', $product->name) }}" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" required>
                         </div>
+
                         <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lokasi Penyimpanan</p>
-                            <p class="text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors">{{ $product->storage_location ?? 'Belum ditentukan' }}</p>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Kode Barang</label>
+                            <input type="text" name="code" value="{{ old('code', $product->code) }}" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">ID Kategori</label>
+                            <input type="number" name="category_id" value="{{ old('category_id', $product->category_id) }}" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Stok (Unit)</label>
+                            <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" required min="0">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Kondisi</label>
+                            <select name="condition" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" required>
+                                <option value="Bagus" {{ $product->condition == 'Bagus' ? 'selected' : '' }}>Bagus</option>
+                                <option value="Rusak Ringan" {{ $product->condition == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                                <option value="Rusak Berat" {{ $product->condition == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Lokasi Penyimpanan</label>
+                            <input type="text" name="location" value="{{ old('location', $product->location) }}" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Contoh: Rak B2">
                         </div>
                     </div>
 
-                    <div class="space-y-6">
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Kondisi Aset</p>
-                            <p class="text-sm font-bold {{ $product->condition == 'Bagus' ? 'text-emerald-500' : 'text-amber-500' }}">{{ $product->condition }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal Registrasi</p>
-                            <p class="text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors">{{ $product->created_at->format('d F Y') }}</p>
-                        </div>
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Ganti Gambar (Opsional)</label>
+                        @if($product->image)
+                            <div class="mb-3">
+                                <p class="text-xs text-slate-400 mb-2">Gambar saat ini:</p>
+                                <img src="{{ asset('storage/' . $product->image) }}" class="w-24 h-24 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm">
+                            </div>
+                        @endif
+                        <input type="file" name="image" accept="image/*" class="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-500/10 dark:file:text-emerald-400 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-xl transition-colors">
                     </div>
-                </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 transition-colors">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Spesifikasi / Deskripsi</p>
-                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed transition-colors">{{ $product->description ?: 'Tidak ada deskripsi tambahan untuk aset ini.' }}</p>
-                </div>
-                
-                <div class="mt-8 pt-6 flex gap-3">
-                    <a href="{{ route('products.edit', $product->id) }}" class="px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-sm font-semibold rounded-xl transition-all">Edit Data Ini</a>
-                </div>
+                    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                        <button type="submit" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all shadow-sm shadow-emerald-200 dark:shadow-emerald-900/20">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+
             </div>
-
         </div>
     </div>
 </x-app-layout>

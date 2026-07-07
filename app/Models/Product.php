@@ -13,7 +13,8 @@ class Product extends Model
         'stock', 
         'storage_location', 
         'condition', 
-        'description'
+        'description',
+        'image',
     ];
 
     public function category()
