@@ -34,7 +34,8 @@ class ProductController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('products.index', compact('products', 'search'));
+        $lowStockProducts = Product::where('stock', '<=', 5)->get();
+    return view('products.index', compact('products', 'search', 'lowStockProducts'));
     }
 
     /**
@@ -56,8 +57,9 @@ class ProductController extends Controller
             'code'        => 'required|unique:products',
             'name'        => 'required|string|max:255',
             'stock'       => 'required|integer|min:0',
+            'storage_location' => 'required|string|max:255',
             'condition'   => 'required|string',
-            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Max 2MB
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -129,6 +131,7 @@ class ProductController extends Controller
             'code'        => 'required|unique:products,code,' . $product->id,
             'name'        => 'required|string|max:255',
             'stock'       => 'required|integer|min:0',
+            'storage_location' => 'nullable|string|max:255',
             'condition'   => 'required|string',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);

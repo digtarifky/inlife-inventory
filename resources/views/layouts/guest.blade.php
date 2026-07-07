@@ -36,8 +36,8 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
             <div class="mb-2">
                 <a href="/" class="font-extrabold text-3xl text-slate-900 dark:text-white tracking-tight flex items-center gap-3 transition-colors">
-                    <div class="w-12 h-12 bg-slate-950 dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-lg transition-colors">
-                        <div class="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
+                    <div class="items-center justify-center shadow-lg transition-colors">
+                        <div class="w-3.5 h-3.5 rounded-full"></div>
                     </div>
                     <span>Inlife<span class="text-emerald-500">.</span></span>
                 </a>

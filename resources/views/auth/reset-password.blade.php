@@ -2,14 +2,12 @@
     <div class="max-w-md w-full mx-auto bg-white dark:bg-slate-800 p-8 rounded-[28px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] border border-slate-100/50 dark:border-slate-700/50 transition-colors duration-300">
         
         <div class="flex justify-center mb-6">
-            <div class="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-900 dark:from-emerald-500 dark:to-emerald-700 rounded-2xl flex items-center justify-center shadow-inner transition-colors">
                 <div class="grid grid-cols-2 gap-1.5">
                     <div class="w-2 h-2 rounded-full bg-white/40"></div>
                     <div class="w-2 h-2 rounded-full bg-white"></div>
                     <div class="w-2 h-2 rounded-full bg-white"></div>
                     <div class="w-2 h-2 rounded-full bg-white/40"></div>
                 </div>
-            </div>
         </div>
 
         <div class="text-center mb-8">

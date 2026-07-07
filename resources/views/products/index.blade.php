@@ -99,10 +99,24 @@
                                         </td>
 
                                         <td class="py-4 px-6">
-                                            <span
-                                                class="text-xs font-bold {{ $item->stock > 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400' }}">
-                                                {{ $item->stock > 0 ? '+ ' . $item->stock . ' Unit' : 'Habis' }}
-                                            </span>
+                                            <div class="flex flex-col items-start gap-1.5">
+                                                <span
+                                                    class="text-xs font-bold {{ $item->stock > 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400' }}">
+                                                    {{ $item->stock > 0 ? '+ ' . $item->stock . ' Unit' : '0 Unit' }}
+                                                </span>
+
+                                                @if ($item->stock > 0 && $item->stock <= 5)
+                                                    <span
+                                                        class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 animate-pulse">
+                                                            Stok Menipis
+                                                    </span>
+                                                @elseif ($item->stock == 0)
+                                                    <span
+                                                        class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20">
+                                                            Stok Habis
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
 
                                         <td class="py-4 px-6">
