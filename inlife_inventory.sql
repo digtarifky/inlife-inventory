@@ -15,11 +15,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
--- Dumping database structure for inlife_inventory
-CREATE DATABASE IF NOT EXISTS `inlife_inventory` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `inlife_inventory`;
-
--- Dumping structure for table inlife_inventory.borrowings
+SET FOREIGN_KEY_CHECKS = 0;
 CREATE TABLE IF NOT EXISTS `borrowings` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
@@ -28,13 +24,11 @@ CREATE TABLE IF NOT EXISTS `borrowings` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `borrowings_user_id_foreign` (`user_id`),
-  CONSTRAINT `borrowings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `borrowings_user_id_foreign` (`user_id`)
+  ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table inlife_inventory.borrowing_details
 CREATE TABLE IF NOT EXISTS `borrowing_details` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `borrowing_id` bigint unsigned NOT NULL,
@@ -45,11 +39,8 @@ CREATE TABLE IF NOT EXISTS `borrowing_details` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `borrowing_details_borrowing_id_foreign` (`borrowing_id`),
-  KEY `borrowing_details_product_id_foreign` (`product_id`),
-  CONSTRAINT `borrowing_details_borrowing_id_foreign` FOREIGN KEY (`borrowing_id`) REFERENCES `borrowings` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `borrowing_details_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+  KEY `borrowing_details_product_id_foreign` (`product_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Data exporting was unselected.
 
 -- Dumping structure for table inlife_inventory.cache
@@ -238,6 +229,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   CONSTRAINT `users_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- Data exporting was unselected.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
@@ -245,3 +238,5 @@ CREATE TABLE IF NOT EXISTS `users` (
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
+
